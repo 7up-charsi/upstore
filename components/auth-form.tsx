@@ -69,16 +69,13 @@ export const AuthForm = (props: AuthFormProps) => {
   };
 
   return (
-    <>
-      <h2 className="mb-5 text-2xl font-bold">
+    <article className="w-full max-w-sm rounded p-5 shadow-md ring-1 ring-border">
+      <h2 className="mb-5 text-center text-2xl font-bold">
         Sign {isSignUp ? 'Up' : 'In'}
       </h2>
 
       <Form {...form}>
-        <form
-          onSubmit={form.handleSubmit(onSubmit)}
-          className="w-full max-w-sm"
-        >
+        <form onSubmit={form.handleSubmit(onSubmit)}>
           {isSignUp && (
             <FormField
               control={form.control}
@@ -144,7 +141,7 @@ export const AuthForm = (props: AuthFormProps) => {
           Sign {isSignUp ? 'In' : 'Up'}
         </Link>
       </p>
-    </>
+    </article>
   );
 };
 
