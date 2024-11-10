@@ -1,5 +1,6 @@
 import { Bounce, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.min.css';
+import { ClerkProvider } from '@clerk/nextjs';
 import { siteConfig } from '@/site.config';
 import localFont from 'next/font/local';
 import type { Metadata } from 'next';
@@ -42,7 +43,9 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} font-sans antialiased`}
       >
-        <div className="mx-auto max-w-screen-2xl">{children}</div>
+        <ClerkProvider>
+          <div className="mx-auto max-w-screen-2xl">{children}</div>
+        </ClerkProvider>
 
         <ToastContainer
           position="bottom-right"
