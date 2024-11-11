@@ -1,31 +1,20 @@
 'use client';
 
 import {
-  Dialog,
-  DialogCloseButton,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
-import {
-  InputOTP,
-  InputOTPGroup,
-  InputOTPSlot,
-} from '@/components/ui/input-otp';
-import {
+  Form,
   FormControl,
-  FormHelperText,
+  FormField,
   FormItem,
   FormLabel,
+  FormMessage,
 } from './ui/form';
 import { isClerkAPIResponseError } from '@clerk/nextjs/errors';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useSignIn, useSignUp } from '@clerk/nextjs';
-import { ResendCode } from './resend-code';
 import { Loader2Icon } from 'lucide-react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
+import { OptModal } from './opt-modal';
 import { Button } from './ui/button';
 import { Input } from './ui/input';
 import Link from 'next/link';
@@ -61,16 +50,9 @@ export const AuthForm = (props: AuthFormProps) => {
   const signInReturn = useSignIn();
 
   const [isLoading, setIsLoading] = React.useState(false);
-  const [verification, setVerification] = React.useState(false);
+  const [verifying, setVerifying] = React.useState(false);
 
-  const {
-    register,
-    reset,
-    handleSubmit,
-    getValues,
-    setError,
-    formState: { errors },
-  } = useForm<FormValues>({
+  const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       firstName: isSignUp ? '' : undefined,
@@ -80,7 +62,7 @@ export const AuthForm = (props: AuthFormProps) => {
   });
 
   const sendOTP = async () => {
-    const values = getValues();
+    const values = form.getValues();
 
     if (isSignUp) {
       if (signUpReturn.isLoaded) {
@@ -112,23 +94,33 @@ export const AuthForm = (props: AuthFormProps) => {
 
       await sendOTP();
 
-      setVerification(true);
+      setVerifying(true);
     } catch (error) {
       if (isClerkAPIResponseError(error)) {
-        error.errors.forEach((error) => {
-          if (error.meta?.paramName === 'email_address') {
-            setError('email', { message: error.longMessage });
-            return;
-          }
-          if (error.meta?.paramName === 'first_name') {
-            setError('firstName', { message: error.longMessage });
-            return;
-          }
-          if (error.meta?.paramName === 'last_name') {
-            setError('lastName', { message: error.longMessage });
-            return;
-          }
-        });
+        if (isSignUp) {
+          error.errors.forEach((error) => {
+            if (error.meta?.paramName === 'email_address') {
+              form.setError('email', { message: error.longMessage });
+              return;
+            }
+            if (error.meta?.paramName === 'first_name') {
+              form.setError('firstName', {
+                message: error.longMessage,
+              });
+              return;
+            }
+            if (error.meta?.paramName === 'last_name') {
+              form.setError('lastName', {
+                message: error.longMessage,
+              });
+              return;
+            }
+          });
+        } else {
+          form.setError('email', {
+            message: error.errors[0].longMessage,
+          });
+        }
 
         return;
       }
@@ -141,88 +133,59 @@ export const AuthForm = (props: AuthFormProps) => {
     }
   };
 
-  const onOTPSubmit = async (
-    event: React.FormEvent<HTMLFormElement>,
-  ) => {
-    try {
-      setIsLoading(true);
-      event.preventDefault();
-
-      const formData = new FormData(event.currentTarget);
-
-      const code = formData.get('code');
-
-      if (!code) {
-        return;
-      }
-
-      if (isSignUp) {
-        if (signUpReturn.isLoaded) {
-          await signUpReturn.signUp.attemptEmailAddressVerification({
-            code: code.toString(),
-          });
-        }
-      } else {
-        if (signInReturn.isLoaded) {
-          await signInReturn.signIn.attemptFirstFactor({
-            strategy: 'email_code',
-            code: code.toString(),
-          });
-        }
-      }
-
-      // router.push('/');
-    } catch (error) {
-      console.log(error);
-      toast.error('Failed to verify otp');
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
-    <>
-      <article className="w-full max-w-sm rounded p-5 shadow-md ring-1 ring-border">
+    <Form {...form}>
+      <article className="w-full max-w-sm">
         <h2 className="mb-5 text-center text-2xl font-bold">
           Sign {isSignUp ? 'Up' : 'In'}
         </h2>
 
-        <form onSubmit={handleSubmit(onFormSubmit)}>
+        <form onSubmit={form.handleSubmit(onFormSubmit)}>
           {isSignUp && (
             <>
-              <FormItem error={!!errors.firstName}>
-                <FormLabel>First name</FormLabel>
-                <FormControl>
-                  {(props) => (
-                    <Input {...register('firstName')} {...props} />
-                  )}
-                </FormControl>
-                <FormHelperText>
-                  {errors.firstName?.message}
-                </FormHelperText>
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="firstName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>First name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
 
-              <FormItem error={!!errors.lastName}>
-                <FormLabel>Last name</FormLabel>
-                <FormControl>
-                  {(props) => (
-                    <Input {...register('lastName')} {...props} />
-                  )}
-                </FormControl>
-                <FormHelperText>
-                  {errors.lastName?.message}
-                </FormHelperText>
-              </FormItem>
+              <FormField
+                control={form.control}
+                name="lastName"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>Last name</FormLabel>
+                    <FormControl>
+                      <Input {...field} />
+                    </FormControl>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
             </>
           )}
 
-          <FormItem error={!!errors.email}>
-            <FormLabel>Email</FormLabel>
-            <FormControl>
-              {(props) => <Input {...register('email')} {...props} />}
-            </FormControl>
-            <FormHelperText>{errors.email?.message}</FormHelperText>
-          </FormItem>
+          <FormField
+            control={form.control}
+            name="email"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email</FormLabel>
+                <FormControl>
+                  <Input {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
 
           <div className="mt-2 flex items-center justify-end gap-2">
             <Button
@@ -230,7 +193,7 @@ export const AuthForm = (props: AuthFormProps) => {
               variant="ghost"
               disabled={isLoading}
               onClick={() => {
-                reset();
+                form.reset();
               }}
             >
               Reset
@@ -265,75 +228,10 @@ export const AuthForm = (props: AuthFormProps) => {
         </p>
       </article>
 
-      {verification && (
-        <Dialog modal defaultOpen>
-          <DialogContent
-            onPointerDownOutside={(e) => e.preventDefault()}
-            className="w-full max-w-sm rounded-lg max-md:w-[calc(100%-20px)]"
-          >
-            <DialogHeader className="sm:text-center">
-              <DialogTitle>Enter Your OTP</DialogTitle>
-              <DialogDescription>
-                We have sent code to{' '}
-                <span className="ml-1 font-mono text-foreground">
-                  {getValues().email}
-                </span>
-              </DialogDescription>
-            </DialogHeader>
-
-            <form
-              onSubmit={onOTPSubmit}
-              className="mx-auto mt-5 flex max-w-max flex-col items-center justify-center"
-            >
-              <InputOTP name="code" maxLength={6}>
-                <InputOTPGroup className="">
-                  <InputOTPSlot
-                    index={0}
-                    className="h-[clamp(36px,10vw,48px)] w-[clamp(36px,10vw,48px)] text-[clamp(16px,5vw,24px)]"
-                  />
-                  <InputOTPSlot
-                    index={1}
-                    className="h-[clamp(36px,10vw,48px)] w-[clamp(36px,10vw,48px)] text-[clamp(16px,5vw,24px)]"
-                  />
-                  <InputOTPSlot
-                    index={2}
-                    className="h-[clamp(36px,10vw,48px)] w-[clamp(36px,10vw,48px)] text-[clamp(16px,5vw,24px)]"
-                  />
-                  <InputOTPSlot
-                    index={3}
-                    className="h-[clamp(36px,10vw,48px)] w-[clamp(36px,10vw,48px)] text-[clamp(16px,5vw,24px)]"
-                  />
-                  <InputOTPSlot
-                    index={4}
-                    className="h-[clamp(36px,10vw,48px)] w-[clamp(36px,10vw,48px)] text-[clamp(16px,5vw,24px)]"
-                  />
-                  <InputOTPSlot
-                    index={5}
-                    className="h-[clamp(36px,10vw,48px)] w-[clamp(36px,10vw,48px)] text-[clamp(16px,5vw,24px)]"
-                  />
-                </InputOTPGroup>
-              </InputOTP>
-
-              <Button
-                type="submit"
-                className="mt-5 w-full"
-                disabled={isLoading}
-              >
-                Submit{' '}
-                {isLoading ? (
-                  <Loader2Icon className="ml-2 animate-spin" />
-                ) : null}
-              </Button>
-            </form>
-
-            <ResendCode sendOTP={sendOTP} isLoading={isLoading} />
-
-            {/* at the end of content because i dont want to place intial focus on close button */}
-            <DialogCloseButton />
-          </DialogContent>
-        </Dialog>
+      {verifying && (
+        <OptModal isSignUp={!!isSignUp} sendOTP={sendOTP} />
       )}
-    </>
+    </Form>
   );
 };
 

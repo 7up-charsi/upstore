@@ -2,6 +2,7 @@
 
 import {
   Dialog,
+  DialogCloseButton,
   DialogContent,
   DialogDescription,
   DialogHeader,
@@ -12,9 +13,9 @@ import {
   InputOTPGroup,
   InputOTPSlot,
 } from '@/components/ui/input-otp';
+import { isClerkAPIResponseError } from '@clerk/nextjs/errors';
 import { useSignIn, useSignUp } from '@clerk/nextjs';
 import { useFormContext } from 'react-hook-form';
-import { useRouter } from 'next/navigation';
 import { ResendCode } from './resend-code';
 import { Loader2Icon } from 'lucide-react';
 import { FormValues } from './auth-form';
@@ -32,16 +33,15 @@ const displayName = 'OptModal';
 export const OptModal = (props: OptModalProps) => {
   const { isSignUp, sendOTP } = props;
 
-  const router = useRouter();
+  const inputRef = React.useRef<HTMLInputElement>(null);
 
   const signUpReturn = useSignUp();
   const signInReturn = useSignIn();
 
-  const { getValues } = useFormContext<FormValues>();
+  const form = useFormContext<FormValues>();
 
   const [isOpen, setIsOpen] = React.useState(true);
   const [isLoading, setIsLoading] = React.useState(false);
-  const [code, setCode] = React.useState('');
 
   const handleSubmit = async (
     event: React.FormEvent<HTMLFormElement>,
@@ -50,10 +50,26 @@ export const OptModal = (props: OptModalProps) => {
       setIsLoading(true);
       event.preventDefault();
 
+      const formData = new FormData(event.currentTarget);
+
+      const code = formData.get('code')?.toString();
+
+      if (!code || code.length < 6) {
+        inputRef.current?.focus();
+        return;
+      }
+
+      dismissToasts();
+
       if (isSignUp) {
         if (signUpReturn.isLoaded) {
           await signUpReturn.signUp.attemptEmailAddressVerification({
             code,
+          });
+
+          signUpReturn.setActive({
+            session: signUpReturn.signUp?.createdSessionId,
+            redirectUrl: '/',
           });
         }
       } else {
@@ -62,13 +78,29 @@ export const OptModal = (props: OptModalProps) => {
             strategy: 'email_code',
             code,
           });
+
+          signInReturn.setActive({
+            session: signInReturn.signIn?.createdSessionId,
+            redirectUrl: '/',
+          });
         }
       }
-
-      router.push('/');
     } catch (error) {
-      console.log(error);
-      toast.error('Failed to verify otp');
+      if (isClerkAPIResponseError(error)) {
+        toast.error(error.errors[0].longMessage, {
+          autoClose: false,
+          closeOnClick: false,
+          draggable: false,
+          closeButton: false,
+          toastId: 'otp-modal-otp-error',
+        });
+
+        return;
+      }
+
+      toast.error('Failed to verify otp', {
+        toastId: 'otp-modal-failed-error',
+      });
     } finally {
       setIsLoading(false);
     }
@@ -82,6 +114,11 @@ export const OptModal = (props: OptModalProps) => {
         if (isLoading) return;
 
         setIsOpen(open);
+
+        // remove all toasts related to OTPModal
+        if (!open) {
+          dismissToasts();
+        }
       }}
     >
       <DialogContent
@@ -93,7 +130,7 @@ export const OptModal = (props: OptModalProps) => {
           <DialogDescription>
             We have sent code to{' '}
             <span className="ml-1 font-mono text-foreground">
-              {getValues().email}
+              {form.getValues().email}
             </span>
           </DialogDescription>
         </DialogHeader>
@@ -102,8 +139,8 @@ export const OptModal = (props: OptModalProps) => {
           onSubmit={handleSubmit}
           className="mx-auto mt-5 flex max-w-max flex-col items-center justify-center"
         >
-          <InputOTP maxLength={6} value={code} onChange={setCode}>
-            <InputOTPGroup className="">
+          <InputOTP ref={inputRef} name="code" maxLength={6}>
+            <InputOTPGroup>
               <InputOTPSlot
                 index={0}
                 className="h-[clamp(36px,10vw,48px)] w-[clamp(36px,10vw,48px)] text-[clamp(16px,5vw,24px)]"
@@ -144,9 +181,17 @@ export const OptModal = (props: OptModalProps) => {
         </form>
 
         <ResendCode sendOTP={sendOTP} isLoading={isLoading} />
+
+        {/* this is at the end of content because i dont want to place intial focus on close button */}
+        <DialogCloseButton />
       </DialogContent>
     </Dialog>
   );
 };
 
 OptModal.displayName = displayName;
+
+const dismissToasts = () => {
+  toast.dismiss('otp-modal-otp-error');
+  toast.dismiss('otp-modal-failed-error');
+};

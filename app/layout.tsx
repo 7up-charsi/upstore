@@ -59,6 +59,7 @@ export default function RootLayout({
           pauseOnHover
           theme="colored"
           transition={Bounce}
+          stacked
         />
       </body>
     </html>
