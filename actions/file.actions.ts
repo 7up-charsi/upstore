@@ -9,7 +9,6 @@ import { ID } from 'node-appwrite';
 
 interface FileUploadProps {
   file: File;
-  path: string;
 }
 
 export const fileUpload = async (props: FileUploadProps) => {
@@ -58,7 +57,7 @@ export const fileUpload = async (props: FileUploadProps) => {
 
     return { success: true, message: 'File uploaded', newFile };
   } catch (error) {
-    console.log(error);
+    console.log({ serverErrr: error });
     return { success: false, message: 'File upload failed' };
   }
 };

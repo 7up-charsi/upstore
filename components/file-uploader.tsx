@@ -1,12 +1,12 @@
 'use client';
 
 import {
-  CheckCircle2Icon,
   ChevronDownIcon,
   Loader2Icon,
   PlusIcon,
   XIcon,
 } from 'lucide-react';
+import { fileUpload } from '@/actions/file.actions';
 import { createId } from '@paralleldrive/cuid2';
 import { createPortal } from 'react-dom';
 import { Button } from './ui/button';
@@ -15,6 +15,7 @@ import React from 'react';
 interface FileObject {
   id: string;
   file: File;
+  haveStarted: boolean;
   status:
     | 'uploaded'
     | 'uploading'
@@ -47,30 +48,41 @@ export const FileUploader = () => {
     const filesArr: FileObject[] = Array.from(files).map((file) => ({
       id: createId(),
       file,
+      haveStarted: false,
       status:
         file.size <= 50 * 1024 * 1024 ? 'uploading' : 'sizeExceed',
     }));
 
-    setFiles((prev) => [...prev, ...filesArr]);
+    setFiles((prev) => [...filesArr, ...prev]);
     setUploadDialogOpen(true);
+    setIsMinimized(false);
 
-    const promises = filesArr
-      .filter((ele) => ele.status === 'uploading')
+    filesArr
+      .filter((ele) => !ele.haveStarted && ele.status === 'uploading')
       .map(async (ele) => {
-        await new Promise((resolve) => {
-          setTimeout(resolve, Math.floor(Math.random() * 6) * 1000);
+        setFiles((prev) =>
+          prev.map((item) =>
+            item.id === ele.id
+              ? { ...item, haveStarted: true }
+              : item,
+          ),
+        );
+
+        const { success, newFile } = await fileUpload({
+          file: ele.file,
         });
 
         setFiles((prev) =>
           prev.map((item) =>
             item.id === ele.id
-              ? { ...item, status: 'uploaded' }
+              ? {
+                  ...item,
+                  status: success && newFile ? 'uploaded' : 'failed',
+                }
               : item,
           ),
         );
       });
-
-    Promise.all(promises);
   };
 
   const uploadedItemsCount = files.filter(
@@ -84,6 +96,7 @@ export const FileUploader = () => {
   const uploadDialog = (
     <div
       role="dialog"
+      tabIndex={0}
       aria-labelledby={uploadDialogLabelId}
       className="fixed bottom-0 z-[9999] max-h-[70vh] w-full overflow-hidden rounded-t-md bg-background shadow max-md:left-0 md:right-16 md:w-80"
     >
@@ -91,7 +104,7 @@ export const FileUploader = () => {
         <span id={uploadDialogLabelId} className="mr-2 grow">
           {files.every((ele) => ele.status !== 'uploading')
             ? `${uploadedItemsCount} upload${uploadedItemsCount > 1 ? 's' : ''} complete`
-            : `uploading ${uploadingItemsCount} item${uploadingItemsCount > 1 ? 's' : ''}`}
+            : `Uploading ${uploadingItemsCount} item${uploadingItemsCount > 1 ? 's' : ''}`}
         </span>
 
         <Button
@@ -131,38 +144,28 @@ export const FileUploader = () => {
             <li
               key={ele.id}
               data-error={ele.status === 'sizeExceed'}
-              className="flex h-12 items-center gap-2 px-3 data-[error=true]:bg-destructive/20"
+              className="flex h-12 items-center gap-2 px-3 data-[error=true]:bg-destructive/10"
             >
-              <span className="truncate text-sm">
+              <span className="grow truncate text-sm">
                 {ele.file.name}
               </span>
 
-              {ele.status === 'uploading' && (
-                <Loader2Icon
-                  size={20}
-                  className="shrink-0 animate-spin text-blue-600"
-                />
-              )}
+              <span
+                data-error={
+                  ele.status === 'sizeExceed' ||
+                  ele.status === 'failed'
+                }
+                data-success={ele.status === 'uploaded'}
+                className="shrink-0 text-sm text-blue-600 data-[error=true]:text-destructive data-[success=true]:text-green-600"
+              >
+                {ele.status === 'failed' && 'Failed'}
+                {ele.status === 'sizeExceed' && 'Size Exceeded'}
+                {ele.status === 'uploaded' && 'Uploaded'}
 
-              {ele.status === 'sizeExceed' && (
-                <span className="shrink-0 text-sm text-destructive">
-                  Size Exceeded.
-                </span>
-              )}
-
-              {ele.status === 'failed' && (
-                <XIcon
-                  size={20}
-                  className="shrink-0 text-destructive"
-                />
-              )}
-
-              {ele.status === 'uploaded' && (
-                <CheckCircle2Icon
-                  size={20}
-                  className="shrink-0 text-green-600"
-                />
-              )}
+                {ele.status === 'uploading' && (
+                  <Loader2Icon size={20} className="animate-spin" />
+                )}
+              </span>
             </li>
           ))}
         </ul>
