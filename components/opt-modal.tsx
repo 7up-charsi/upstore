@@ -85,7 +85,11 @@ export const OptModal = (props: OptModalProps) => {
           });
         }
       }
+
+      // do not need setIsLoading(false) here because i dont want to stop loading on success signIn/signUp
     } catch (error) {
+      setIsLoading(false);
+
       if (isClerkAPIResponseError(error)) {
         toast.error(error.errors[0].longMessage, {
           autoClose: false,
@@ -101,8 +105,6 @@ export const OptModal = (props: OptModalProps) => {
       toast.error('Failed to verify otp', {
         toastId: 'otp-modal-failed-error',
       });
-    } finally {
-      setIsLoading(false);
     }
   };
 
