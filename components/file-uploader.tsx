@@ -6,7 +6,6 @@ import {
   PlusIcon,
   XIcon,
 } from 'lucide-react';
-import { fileUpload } from '@/actions/file.actions';
 import { createId } from '@paralleldrive/cuid2';
 import { createPortal } from 'react-dom';
 import { Button } from './ui/button';
@@ -15,7 +14,7 @@ import React from 'react';
 interface FileObject {
   id: string;
   file: File;
-  haveStarted: boolean;
+  haveRequestSent: boolean;
   status:
     | 'uploaded'
     | 'uploading'
@@ -48,7 +47,7 @@ export const FileUploader = () => {
     const filesArr: FileObject[] = Array.from(files).map((file) => ({
       id: createId(),
       file,
-      haveStarted: false,
+      haveRequestSent: false,
       status:
         file.size <= 50 * 1024 * 1024 ? 'uploading' : 'sizeExceed',
     }));
@@ -58,19 +57,29 @@ export const FileUploader = () => {
     setIsMinimized(false);
 
     filesArr
-      .filter((ele) => !ele.haveStarted && ele.status === 'uploading')
+      .filter(
+        (ele) => !ele.haveRequestSent && ele.status === 'uploading',
+      )
       .map(async (ele) => {
         setFiles((prev) =>
           prev.map((item) =>
             item.id === ele.id
-              ? { ...item, haveStarted: true }
+              ? { ...item, haveRequestSent: true }
               : item,
           ),
         );
 
-        const { success, newFile } = await fileUpload({
-          file: ele.file,
+        const formData = new FormData();
+
+        formData.set('file', ele.file);
+        formData.set('clientSideId', ele.id);
+
+        const res = await fetch('/api/file-upload', {
+          method: 'POST',
+          body: formData,
         });
+
+        const { success, newFile } = await res.json();
 
         setFiles((prev) =>
           prev.map((item) =>

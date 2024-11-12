@@ -1,19 +1,15 @@
-'use server';
-
 import { createAdminClient } from '@/appwrite-client';
 import { appwriteConfig } from '@/appwrite.config';
 import { InputFile } from 'node-appwrite/file';
 import { auth } from '@clerk/nextjs/server';
+import { NextRequest } from 'next/server';
 import { getFileType } from '@/lib/utils';
 import { ID } from 'node-appwrite';
 
-interface FileUploadProps {
-  file: File;
-  idToReturn: string;
-}
+export const POST = async (req: NextRequest) => {
+  const formData = await req.formData();
 
-export const fileUpload = async (props: FileUploadProps) => {
-  const { file, idToReturn } = props;
+  const file = formData.get('file') as File;
 
   const { userId } = await auth();
 
@@ -56,18 +52,17 @@ export const fileUpload = async (props: FileUploadProps) => {
         throw new Error('Failed to create file document');
       });
 
-    return {
+    return Response.json({
       success: true,
       message: 'File uploaded',
-      idToReturn,
       newFile,
-    };
+    });
   } catch (error) {
     console.log({ serverErrr: error });
-    return {
+
+    return Response.json({
       success: false,
       message: 'File upload failed',
-      idToReturn,
-    };
+    });
   }
 };
