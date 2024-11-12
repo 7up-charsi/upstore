@@ -6,6 +6,7 @@ import {
   LayoutDashboardIcon,
   VideoIcon,
 } from 'lucide-react';
+import { FileUploadButton } from './file-upload-button';
 import { SignOutButton } from './sign-out-button';
 import { usePathname } from 'next/navigation';
 import { ClerkProvider } from '@clerk/nextjs';
@@ -52,7 +53,7 @@ export const SideBarContent = () => {
             key={i}
             href={ele.href}
             data-active={ele.href === pathname}
-            className="group flex h-11 items-center gap-2 rounded px-3 transition-colors hover:bg-brand/10 data-[active=true]:bg-brand/70 data-[active=true]:text-brand-foreground data-[active=true]:hover:bg-brand/80"
+            className="group flex h-11 items-center gap-2 rounded px-3 transition-colors before:hidden before:h-3/5 before:w-1 before:rounded-full before:bg-primary hover:bg-primary/10 data-[active=true]:before:block"
           >
             <span className="opacity-70 group-data-[active=true]:opacity-100">
               {ele.icon}
@@ -60,6 +61,14 @@ export const SideBarContent = () => {
             <span>{ele.title}</span>
           </Link>
         ))}
+      </div>
+
+      <div className="my-5 lg:hidden [&>button]:w-full">
+        <FileUploadButton />
+        <p className="mt-2 px-1 text-center text-sm text-muted-foreground">
+          You can monitor the file upload progress by closing this
+          navigation sheet in the upload dialog.
+        </p>
       </div>
 
       <UserButton />
