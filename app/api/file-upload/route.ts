@@ -7,11 +7,18 @@ import { getFileType } from '@/lib/utils';
 import { ID } from 'node-appwrite';
 
 export const POST = async (req: NextRequest) => {
+  const { userId } = await auth();
+
+  if (!userId) {
+    return Response.json({
+      success: false,
+      message: 'Unauthenticaed request',
+    });
+  }
+
   const formData = await req.formData();
 
   const file = formData.get('file') as File;
-
-  const { userId } = await auth();
 
   const { storage, databases } = await createAdminClient();
 
