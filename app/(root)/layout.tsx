@@ -13,7 +13,7 @@ export default function Layout(props: LayoutProps) {
   return (
     <>
       <div className="grid h-full min-h-screen grid-cols-1 lg:grid-cols-[auto_1fr]">
-        <aside className="sticky top-0 h-full w-72 max-lg:hidden">
+        <aside className="sticky top-0 h-screen w-72 max-lg:hidden">
           <SideBarContent />
         </aside>
 

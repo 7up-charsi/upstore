@@ -5,7 +5,7 @@ const displayName = 'Header';
 
 export const Header = () => {
   return (
-    <div className="flex h-16 items-center max-lg:hidden">
+    <div className="sticky top-0 flex h-16 items-center bg-background/70 backdrop-blur-sm max-lg:hidden">
       <span>search</span>
 
       <div className="grow"></div>

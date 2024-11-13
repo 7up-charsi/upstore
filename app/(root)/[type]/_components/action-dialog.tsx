@@ -5,6 +5,7 @@ import {
   DialogContent,
   DialogTitle,
 } from '@/components/ui/dialog';
+import { ActionDialogImagePreview } from './action-dialog-image-preview';
 import { useFileActionDialog } from '@/zustand/use-file-action-dialog';
 import { DetailsActionContent } from './details-action-content';
 import { RenameActionContent } from './rename-action-content';
@@ -34,11 +35,11 @@ export const ActionDialog = (props: ActionDialogProps) => {
         role={action.type === 'delete' ? 'alertdialog' : 'dialog'}
         className="w-[90%] max-w-sm px-6 py-8"
       >
-        {action.type === 'delete' ? null : (
-          <DialogTitle className="text-center">
-            {action.label}
-          </DialogTitle>
-        )}
+        <DialogTitle className="text-center">
+          {action.label}
+        </DialogTitle>
+
+        <ActionDialogImagePreview {...file} />
 
         {action.type === 'rename' && (
           <RenameActionContent {...file} />

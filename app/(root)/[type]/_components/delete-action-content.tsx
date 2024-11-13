@@ -1,7 +1,6 @@
 import {
   DialogClose,
   DialogDescription,
-  DialogTitle,
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Loader2Icon } from 'lucide-react';
@@ -26,15 +25,12 @@ export const DeleteActionContent = (
 
   return (
     <>
-      <div className="flex flex-col space-y-1.5">
-        <DialogTitle className="">Delete File</DialogTitle>
-        <DialogDescription className="">
-          Are you sure you want to delete{' '}
-          <span className="font-medium">{file.name}</span>?
-        </DialogDescription>
-      </div>
+      <DialogDescription className="text-center">
+        Are you sure you want to delete <br />
+        <span className="font-medium">{file.name}</span>?
+      </DialogDescription>
 
-      <div className="mt-3 flex justify-end space-x-2">
+      <div className="flex justify-end space-x-2">
         <DialogClose asChild>
           <Button type="button" variant="ghost">
             Cancel

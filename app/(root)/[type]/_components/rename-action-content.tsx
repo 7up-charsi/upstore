@@ -34,23 +34,18 @@ export const RenameActionContent = (
         }
       }}
     >
-      <div className="mt-10">
-        <Input
-          aria-describedby={descId}
-          aria-invalid={!!errorMessage}
-          aria-label="rename"
-          placeholder="Enter New name here..."
-          type="text"
-          value={value}
-          onChange={(e) => setValue(e.target.value)}
-        />
+      <Input
+        aria-describedby={descId}
+        aria-invalid={!!errorMessage}
+        aria-label="rename"
+        placeholder="Enter New name here..."
+        type="text"
+        value={value}
+        onChange={(e) => setValue(e.target.value)}
+      />
 
-        <div
-          id={descId}
-          className="mt-1 h-5 text-sm text-destructive"
-        >
-          {errorMessage}
-        </div>
+      <div id={descId} className="mt-1 h-5 text-sm text-destructive">
+        {errorMessage}
       </div>
 
       <div className="mt-1 flex justify-end space-x-2">

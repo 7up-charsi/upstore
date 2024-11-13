@@ -22,26 +22,6 @@ export const ShareActionContent = (
 
   return (
     <>
-      <div className="mb-1 flex items-center gap-3 rounded-lg bg-muted p-3">
-        <Image
-          src={file.url}
-          alt={file.name}
-          width={100}
-          height={100}
-          className="size-8 object-contain"
-        />
-
-        <div className="flex flex-col">
-          <span className="truncate text-sm font-semibold">
-            {file.name}
-          </span>
-
-          <span className="truncate text-sm text-muted-foreground">
-            {formatDateTime(file.$createdAt)}
-          </span>
-        </div>
-      </div>
-
       <ShareActionForm onShare={handleShare} />
 
       <div className="text-center text-sm font-semibold text-muted-foreground">
