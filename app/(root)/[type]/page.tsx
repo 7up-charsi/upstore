@@ -1,6 +1,3 @@
-import { RenameActionDialog } from './_components/rename-action-dialog';
-import { DeleteActionDialog } from './_components/delete-action-dialog';
-import { ShareActionDialog } from './_components/share-action-dialog';
 import { getFiles } from '@/actions/files.actions';
 import { Card } from './_components/card';
 
@@ -40,7 +37,7 @@ export default async function FilesPage(props: FilesPageProps) {
       </div>
 
       {data.files.total > 0 ? (
-        <section className="mt-5 grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
+        <section className="mt-5 grid grid-cols-[repeat(auto-fill,minmax(260px,1fr))] gap-6">
           {data.files.documents.map((file) => (
             <Card key={file.$id} {...file} />
           ))}
@@ -50,10 +47,6 @@ export default async function FilesPage(props: FilesPageProps) {
           No files uploaded
         </p>
       )}
-
-      <RenameActionDialog />
-      <ShareActionDialog />
-      <DeleteActionDialog />
     </main>
   );
 }

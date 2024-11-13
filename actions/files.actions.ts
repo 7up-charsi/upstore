@@ -48,10 +48,52 @@ export const getFiles = async (): Promise<GetFilesReturn> => {
       queries,
     )) as Models.DocumentList<Models.Document & DbFile>;
 
+    const withUser = files.documents.map(async (file) => {
+      const res = await fetch(
+        `https://api.clerk.com/v1/users/${file.userId}`,
+        {
+          headers: {
+            Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+          },
+        },
+      );
+
+      const user = await res.json();
+
+      let users = [];
+
+      if (file.users.length) {
+        const searchParams = new URLSearchParams();
+
+        file.users.forEach((ele) => {
+          searchParams.append('email_address', ele);
+        });
+
+        const usersRes = await fetch(
+          `https://api.clerk.com/v1/users?${searchParams.toString()}`,
+          {
+            headers: {
+              Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
+            },
+          },
+        );
+
+        users = await usersRes.json();
+      }
+
+      return {
+        ...file,
+        user,
+        users,
+      };
+    });
+
+    const documents = await Promise.all(withUser);
+
     return {
       success: true,
       message: 'Files retrieved successfully',
-      files,
+      files: { ...files, documents },
     };
   } catch (error) {
     console.log(error);

@@ -1,19 +1,21 @@
-import { DialogClose, DialogFooter } from '@/components/ui/dialog';
+'use client';
+
+import { DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Loader2Icon } from 'lucide-react';
+import { Models } from 'node-appwrite';
+import { DbFile } from '@/types';
 import React from 'react';
 
-interface RenameActionContentProps {
-  onSubmit: (value: string) => void;
-}
+interface RenameActionContentProps extends Models.Document, DbFile {}
 
 const displayName = 'RenameActionContent';
 
 export const RenameActionContent = (
   props: RenameActionContentProps,
 ) => {
-  const { onSubmit } = props;
+  const { ..._file } = props;
 
   const descId = React.useId();
   const [value, setValue] = React.useState('');
@@ -30,8 +32,6 @@ export const RenameActionContent = (
           setIsLoading(false);
           return;
         }
-
-        onSubmit?.(value);
       }}
     >
       <div className="mt-10">
@@ -45,12 +45,15 @@ export const RenameActionContent = (
           onChange={(e) => setValue(e.target.value)}
         />
 
-        <div id={descId} className="h-5 text-sm text-destructive">
+        <div
+          id={descId}
+          className="mt-1 h-5 text-sm text-destructive"
+        >
           {errorMessage}
         </div>
       </div>
 
-      <DialogFooter className="mt-1">
+      <div className="mt-1 flex justify-end space-x-2">
         <DialogClose asChild>
           <Button type="button" variant="ghost">
             Cancel
@@ -60,9 +63,9 @@ export const RenameActionContent = (
         <Button type="submit">
           <span>Submit</span>
 
-          {isLoading && <Loader2Icon className="ml-2 animate-spin" />}
+          {isLoading && <Loader2Icon className="animate-spin" />}
         </Button>
-      </DialogFooter>
+      </div>
     </form>
   );
 };

@@ -16,8 +16,9 @@ import {
   TextCursorIcon,
   TrashIcon,
 } from 'lucide-react';
-import { useFileRenameAction } from '@/zustand/file-actions';
+import { useFileActionDialog } from '@/zustand/use-file-action-dialog';
 import { constructDownloadUrl } from '@/lib/utils';
+import { ActionDialog } from './action-dialog';
 import { Models } from 'node-appwrite';
 import { DbFile } from '@/types';
 import Link from 'next/link';
@@ -50,7 +51,7 @@ const dropdownItems = [
   },
   {
     label: 'Delete',
-    icon: <TrashIcon size={15} className="text-foreground/60" />,
+    icon: <TrashIcon size={15} className="text-destructive" />,
     value: 'delete',
   },
 ];
@@ -58,56 +59,75 @@ const dropdownItems = [
 export const Actions = (props: ActionsProps) => {
   const { ...file } = props;
 
-  const onRenameIdChange = useFileRenameAction((s) => s.onIdChange);
-
-  //   TODO: add alert dialog for delete action
-  //   {action.value === 'delete' && (
-  //     <p className="text-center text-muted-foreground">
-  //       Are you sure you want to delete{' '}
-  //       <span className="font-medium">{file.name}</span>?
-  //     </p>
-  //   )}
+  const onOpenIdChange = useFileActionDialog((s) => s.onOpenIdChange);
+  const setAction = useFileActionDialog((s) => s.setAction);
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger className="flex size-9 items-center justify-center rounded-full text-foreground/30 outline-none ring-offset-transparent hover:bg-muted focus:ring-transparent focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0 data-[state=open]:bg-muted">
-        <EllipsisVerticalIcon size={25} />
-      </DropdownMenuTrigger>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger className="flex size-9 items-center justify-center rounded-full text-foreground/30 outline-none ring-offset-transparent hover:bg-muted focus:ring-transparent focus:ring-offset-0 focus-visible:outline-none focus-visible:ring-0 focus-visible:ring-transparent focus-visible:ring-offset-0 data-[state=open]:bg-muted">
+          <EllipsisVerticalIcon size={25} />
+        </DropdownMenuTrigger>
 
-      <DropdownMenuContent>
-        <DropdownMenuLabel className="max-w-[200px] truncate">
-          {file.name}
-        </DropdownMenuLabel>
+        <DropdownMenuContent>
+          <DropdownMenuLabel className="max-w-[200px] truncate">
+            {file.name}
+          </DropdownMenuLabel>
 
-        <DropdownMenuSeparator />
+          <DropdownMenuSeparator />
 
-        {dropdownItems.map((item) => (
-          <DropdownMenuItem
-            asChild={item.value === 'download'}
-            key={item.value}
-            className="cursor-pointer"
-            onClick={() => {
-              if (item.value === 'rename') onRenameIdChange(file.$id);
-            }}
-          >
-            {item.value === 'download' ? (
-              <Link
-                href={constructDownloadUrl(file.bucketFileId)}
-                download={file.name}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </Link>
-            ) : (
-              <>
-                {item.icon}
-                <span>{item.label}</span>
-              </>
-            )}
-          </DropdownMenuItem>
-        ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+          {dropdownItems.map((item) => (
+            <DropdownMenuItem
+              asChild={item.value === 'download'}
+              key={item.value}
+              data-delete={item.value === 'delete'}
+              className="cursor-pointer data-[delete=true]:text-destructive data-[delete=true]:focus:bg-destructive/10 data-[delete=true]:focus:text-destructive"
+              onSelect={() => {
+                if (item.value === 'download') return;
+
+                onOpenIdChange(file.$id);
+
+                if (item.value === 'rename') {
+                  setAction({ label: 'Rename File', type: 'rename' });
+                }
+
+                if (item.value === 'details') {
+                  setAction({
+                    label: 'File Details',
+                    type: 'details',
+                  });
+                }
+
+                if (item.value === 'share') {
+                  setAction({ label: 'Share File', type: 'share' });
+                }
+
+                if (item.value === 'delete') {
+                  setAction({ label: 'Delete File', type: 'delete' });
+                }
+              }}
+            >
+              {item.value === 'download' ? (
+                <Link
+                  href={constructDownloadUrl(file.bucketFileId)}
+                  download={file.name}
+                >
+                  {item.icon}
+                  <span>{item.label}</span>
+                </Link>
+              ) : (
+                <>
+                  {item.icon}
+                  <span>{item.label}</span>
+                </>
+              )}
+            </DropdownMenuItem>
+          ))}
+        </DropdownMenuContent>
+      </DropdownMenu>
+
+      <ActionDialog {...file} />
+    </>
   );
 };
 
