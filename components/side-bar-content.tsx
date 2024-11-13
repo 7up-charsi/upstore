@@ -2,6 +2,7 @@
 
 import {
   ChartPieIcon,
+  FilesIcon,
   ImagesIcon,
   LayoutDashboardIcon,
   VideoIcon,
@@ -22,18 +23,23 @@ const links = [
     icon: <LayoutDashboardIcon size={20} />,
   },
   {
+    title: 'Documents',
+    href: '/documents',
+    icon: <FilesIcon size={20} />,
+  },
+  {
     title: 'Images',
-    href: '',
+    href: '/images',
     icon: <ImagesIcon size={20} />,
   },
   {
     title: 'Media',
-    href: '',
+    href: '/media',
     icon: <VideoIcon size={20} />,
   },
   {
     title: 'Others',
-    href: '',
+    href: '/others',
     icon: <ChartPieIcon size={20} />,
   },
 ];

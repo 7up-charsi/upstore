@@ -1,9 +1,9 @@
+import { constructFileUrl, getFileType } from '@/lib/utils';
 import { createAdminClient } from '@/appwrite-client';
 import { appwriteConfig } from '@/appwrite.config';
 import { InputFile } from 'node-appwrite/file';
 import { auth } from '@clerk/nextjs/server';
 import { NextRequest } from 'next/server';
-import { getFileType } from '@/lib/utils';
 import { ID } from 'node-appwrite';
 
 export const POST = async (req: NextRequest) => {
@@ -40,6 +40,7 @@ export const POST = async (req: NextRequest) => {
       name: bucketFile.name,
       size: bucketFile.sizeOriginal,
       bucketFileId: bucketFile.$id,
+      url: constructFileUrl(bucketFile.$id),
       users: [],
     };
 
@@ -65,7 +66,7 @@ export const POST = async (req: NextRequest) => {
       newFile,
     });
   } catch (error) {
-    console.log({ serverErrr: error });
+    console.log(error);
 
     return Response.json({
       success: false,

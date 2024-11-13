@@ -7,7 +7,10 @@ const nextConfig: NextConfig = {
     },
   },
   images: {
-    remotePatterns: [{ hostname: 'img.clerk.com' }],
+    remotePatterns: [
+      { hostname: 'cloud.appwrite.io' },
+      { hostname: 'img.clerk.com' },
+    ],
   },
 };
 

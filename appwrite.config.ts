@@ -18,7 +18,10 @@ if (!process.env.NEXT_PUBLIC_APPWRITE_BUCKET)
 // DO NOT ADD SECRET KEYS
 
 export const appwriteConfig = {
-  endpointUrl: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT,
+  endpointUrl: process.env.NEXT_PUBLIC_APPWRITE_ENDPOINT.replace(
+    /\/+$/,
+    '',
+  ),
   projectId: process.env.NEXT_PUBLIC_APPWRITE_PROJECT,
   databaseId: process.env.NEXT_PUBLIC_APPWRITE_DATABASE,
   filesCollectionId:
