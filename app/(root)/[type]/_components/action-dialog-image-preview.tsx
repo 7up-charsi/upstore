@@ -25,7 +25,7 @@ export const ActionDialogImagePreview = (
         className="size-8 object-contain"
       />
 
-      <div className="flex flex-col">
+      <div className="flex flex-col overflow-auto">
         <span className="truncate text-sm font-semibold">
           {file.name}
         </span>
