@@ -1,5 +1,8 @@
+import { RenameActionDialog } from './_components/rename-action-dialog';
+import { DeleteActionDialog } from './_components/delete-action-dialog';
+import { ShareActionDialog } from './_components/share-action-dialog';
 import { getFiles } from '@/actions/files.actions';
-import { FileCard } from '@/components/file-card';
+import { Card } from './_components/card';
 
 interface FilesPageProps {
   params: Promise<{ type: string }>;
@@ -39,7 +42,7 @@ export default async function FilesPage(props: FilesPageProps) {
       {data.files.total > 0 ? (
         <section className="mt-5 grid gap-6 sm:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
           {data.files.documents.map((file) => (
-            <FileCard key={file.$id} {...file} />
+            <Card key={file.$id} {...file} />
           ))}
         </section>
       ) : (
@@ -47,6 +50,10 @@ export default async function FilesPage(props: FilesPageProps) {
           No files uploaded
         </p>
       )}
+
+      <RenameActionDialog />
+      <ShareActionDialog />
+      <DeleteActionDialog />
     </main>
   );
 }

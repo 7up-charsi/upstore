@@ -1,10 +1,14 @@
 'use client';
 
-import { Avatar, AvatarFallback, AvatarImage } from './ui/avatar';
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from '@/components/ui/avatar';
 import { ClerkLoading, useUser } from '@clerk/nextjs';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Button } from '@/components/ui/button';
 import { SettingsIcon } from 'lucide-react';
-import { Skeleton } from './ui/skeleton';
-import { Button } from './ui/button';
 import Link from 'next/link';
 import React from 'react';
 

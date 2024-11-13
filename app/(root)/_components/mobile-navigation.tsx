@@ -5,9 +5,9 @@ import {
   SheetTrigger,
 } from '@/components/ui/sheet';
 import { SideBarContent } from './side-bar-content';
+import { Branding } from '@/components/branding';
+import { Button } from '@/components/ui/button';
 import { MenuIcon } from 'lucide-react';
-import { Branding } from './branding';
-import { Button } from './ui/button';
 import React from 'react';
 
 const displayName = 'MobileNavigation';

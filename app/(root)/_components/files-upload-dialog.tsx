@@ -3,8 +3,8 @@
 import { useFilesUploadDialog } from '@/zustand/use-files-upload-dialog';
 import { ChevronDownIcon, Loader2Icon, XIcon } from 'lucide-react';
 import { useFilesUpload } from '@/zustand/use-files-upload';
+import { Button } from '@/components/ui/button';
 import { createPortal } from 'react-dom';
-import { Button } from './ui/button';
 import React from 'react';
 
 const displayName = 'FilesUploadDialog';

@@ -9,10 +9,10 @@ import {
 } from 'lucide-react';
 import { FileUploadButton } from './file-upload-button';
 import { SignOutButton } from './sign-out-button';
+import { Branding } from '@/components/branding';
 import { usePathname } from 'next/navigation';
 import { ClerkProvider } from '@clerk/nextjs';
 import { UserButton } from './user-button';
-import { Branding } from './branding';
 import Link from 'next/link';
 import React from 'react';
 

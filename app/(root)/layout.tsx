@@ -1,7 +1,7 @@
-import { FilesUploadDialog } from '@/components/files-upload-dialog';
-import { MobileNavigation } from '@/components/mobile-navigation';
-import { SideBarContent } from '@/components/side-bar-content';
-import { Header } from '@/components/header';
+import { FilesUploadDialog } from './_components/files-upload-dialog';
+import { MobileNavigation } from './_components/mobile-navigation';
+import { SideBarContent } from './_components/side-bar-content';
+import { Header } from './_components/header';
 
 interface LayoutProps {
   children?: React.ReactNode;
@@ -19,7 +19,6 @@ export default function Layout(props: LayoutProps) {
 
         <div className="flex flex-col lg:pb-5 lg:pr-5">
           <MobileNavigation />
-
           <Header />
 
           <div className="grow rounded-xl bg-muted">{children}</div>

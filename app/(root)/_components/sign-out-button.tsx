@@ -1,8 +1,8 @@
 'use client';
 
+import { Button } from '@/components/ui/button';
 import { Loader2Icon } from 'lucide-react';
 import { useAuth } from '@clerk/nextjs';
-import { Button } from './ui/button';
 import React from 'react';
 
 const displayName = 'SignOutButton';

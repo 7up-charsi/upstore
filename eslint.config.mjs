@@ -36,6 +36,9 @@ const config = [
     plugins: {
       'react-compiler': reactCompiler,
     },
+  },
+
+  {
     rules: {
       '@typescript-eslint/no-empty-object-type': [
         'error',

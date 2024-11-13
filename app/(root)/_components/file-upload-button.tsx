@@ -5,9 +5,9 @@ import {
   useFilesUpload,
 } from '@/zustand/use-files-upload';
 import { useFilesUploadDialog } from '@/zustand/use-files-upload-dialog';
+import { Button } from '@/components/ui/button';
 import { createId } from '@paralleldrive/cuid2';
 import { PlusIcon } from 'lucide-react';
-import { Button } from './ui/button';
 import React from 'react';
 
 const displayName = 'FileUploadButton';

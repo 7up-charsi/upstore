@@ -1,16 +1,17 @@
 import { convertFileSize, formatDateTime } from '@/lib/utils';
 import { currentUser } from '@clerk/nextjs/server';
 import { Models } from 'node-appwrite';
+import { Actions } from './actions';
 import { DbFile } from '@/types';
 import Image from 'next/image';
 import Link from 'next/link';
 import React from 'react';
 
-interface FileCardProps extends Models.Document, DbFile {}
+interface CardProps extends Models.Document, DbFile {}
 
-const displayName = 'FileCard';
+const displayName = 'Card';
 
-export const FileCard = async (props: FileCardProps) => {
+export const Card = async (props: CardProps) => {
   const { ...file } = props;
 
   const user = await currentUser();
@@ -37,8 +38,9 @@ export const FileCard = async (props: FileCardProps) => {
         </div>
 
         <div className="flex flex-col items-end justify-between">
-          {/* <ActionDropdown file={file} /> */}
-          <p className="">{convertFileSize(file.size)}</p>
+          <Actions {...file} />
+
+          <span>{convertFileSize(file.size)}</span>
         </div>
       </div>
 
@@ -59,4 +61,4 @@ export const FileCard = async (props: FileCardProps) => {
   );
 };
 
-FileCard.displayName = displayName;
+Card.displayName = displayName;

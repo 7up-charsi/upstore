@@ -16,11 +16,11 @@ import {
 import { isClerkAPIResponseError } from '@clerk/nextjs/errors';
 import { useSignIn, useSignUp } from '@clerk/nextjs';
 import { useFormContext } from 'react-hook-form';
+import { Button } from '@/components/ui/button';
 import { ResendCode } from './resend-code';
 import { Loader2Icon } from 'lucide-react';
 import { FormValues } from './auth-form';
 import { toast } from 'react-toastify';
-import { Button } from './ui/button';
 import React from 'react';
 
 interface OptModalProps {
