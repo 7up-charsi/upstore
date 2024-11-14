@@ -55,7 +55,6 @@ export const FileUploadButton = () => {
         const formData = new FormData();
 
         formData.set('file', ele.file);
-        formData.set('clientSideId', ele.id);
 
         const res = await fetch('/api/file-upload', {
           method: 'POST',
