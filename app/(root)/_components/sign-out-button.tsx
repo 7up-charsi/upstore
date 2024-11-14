@@ -2,24 +2,25 @@
 
 import { Button } from '@/components/ui/button';
 import { Loader2Icon } from 'lucide-react';
-import { useAuth } from '@clerk/nextjs';
 import React from 'react';
 
 const displayName = 'SignOutButton';
 
-export const SignOutButton = () => {
-  const { signOut, isLoaded } = useAuth();
+export const SignOutButton = (
+  props: React.ButtonHTMLAttributes<HTMLButtonElement>,
+) => {
+  const { onClick, disabled } = props;
 
   const [isLoading, setIsLoading] = React.useState(false);
 
   return (
     <Button
       variant="ghost"
-      disabled={!isLoaded}
+      disabled={disabled}
       className="mt-3 bg-destructive/10 text-destructive hover:bg-destructive/15 hover:text-destructive active:bg-destructive/25"
-      onClick={async () => {
+      onClick={(event) => {
         setIsLoading(true);
-        await signOut();
+        onClick?.(event);
       }}
     >
       <span>Sign out</span>
