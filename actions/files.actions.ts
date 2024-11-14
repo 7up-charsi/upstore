@@ -1,8 +1,15 @@
-import { auth, currentUser } from '@clerk/nextjs/server';
+'use server';
+
+import {
+  auth,
+  clerkClient,
+  currentUser,
+  User,
+} from '@clerk/nextjs/server';
 import { createAdminClient } from '@/appwrite-client';
 import { appwriteConfig } from '@/appwrite.config';
-import { Models, Query } from 'node-appwrite';
-import { DbFile } from '@/types';
+import { Query } from 'node-appwrite';
+import { MinimalUser } from '@/types';
 
 const createQuries = (userId: string, userEmail: string) => {
   const queries = [
@@ -15,16 +22,10 @@ const createQuries = (userId: string, userEmail: string) => {
   return queries;
 };
 
-type GetFilesReturn =
-  | {
-      success: true;
-      message: string;
-      files: Models.DocumentList<Models.Document & DbFile>;
-    }
-  | { success: false; message: string };
-
-export const getFiles = async (): Promise<GetFilesReturn> => {
+export const getFiles = async () => {
   const { databases } = await createAdminClient();
+
+  const clerk = await clerkClient();
 
   try {
     const { userId } = await auth();
@@ -42,49 +43,41 @@ export const getFiles = async (): Promise<GetFilesReturn> => {
       user.primaryEmailAddress?.emailAddress || '',
     );
 
-    const files = (await databases.listDocuments(
+    const files = await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.filesCollectionId,
       queries,
-    )) as Models.DocumentList<Models.Document & DbFile>;
+    );
 
     const withUser = files.documents.map(async (file) => {
-      const res = await fetch(
-        `https://api.clerk.com/v1/users/${file.userId}`,
-        {
-          headers: {
-            Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
-          },
-        },
-      );
+      const user = await clerk.users.getUser(file.userId);
 
-      const user = await res.json();
-
-      let users = [];
+      let users: User[] = [];
 
       if (file.users.length) {
-        const searchParams = new URLSearchParams();
-
-        file.users.forEach((ele) => {
-          searchParams.append('email_address', ele);
+        const usersList = await clerk.users.getUserList({
+          emailAddress: file.users,
         });
 
-        const usersRes = await fetch(
-          `https://api.clerk.com/v1/users?${searchParams.toString()}`,
-          {
-            headers: {
-              Authorization: `Bearer ${process.env.CLERK_SECRET_KEY}`,
-            },
-          },
-        );
-
-        users = await usersRes.json();
+        users = usersList.data;
       }
+
+      const minimalUser: MinimalUser = {
+        fullName: `${user.firstName} ${user.lastName}`,
+        email: user.primaryEmailAddress?.emailAddress || '',
+        id: user.id,
+      };
 
       return {
         ...file,
-        user,
-        users,
+        user: minimalUser,
+        users: users.map(
+          (user): MinimalUser => ({
+            fullName: `${user.firstName} ${user.lastName}`,
+            email: user.primaryEmailAddress?.emailAddress || '',
+            id: user.id,
+          }),
+        ),
       };
     });
 
@@ -98,5 +91,189 @@ export const getFiles = async (): Promise<GetFilesReturn> => {
   } catch (error) {
     console.log(error);
     return { success: false, message: 'Failed to get files' };
+  }
+};
+
+interface RenameFileProps {
+  id: string;
+  name: string;
+}
+
+export const renameFile = async (props: RenameFileProps) => {
+  const { id, name } = props;
+
+  const { databases } = await createAdminClient();
+
+  try {
+    const { userId } = await auth();
+
+    if (!userId)
+      return {
+        success: false,
+        message: 'Unauthorized request',
+      };
+
+    const file = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      id,
+    );
+
+    if (!file) {
+      return {
+        success: false,
+        message: 'File does not exist',
+      };
+    }
+
+    const updatedFile = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      id,
+      { name: `${name}.${file.extension}` },
+    );
+
+    return {
+      success: true,
+      message: 'File renamed successfully',
+      updatedFile,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: 'Failed to rename file' };
+  }
+};
+
+interface UpdateFileUsersProps {
+  id: string;
+  emails: string[];
+}
+
+export const updateFileUsers = async (
+  props: UpdateFileUsersProps,
+) => {
+  const { emails, id } = props;
+
+  const { databases } = await createAdminClient();
+
+  try {
+    const { userId } = await auth();
+
+    if (!userId)
+      return {
+        success: false,
+        message: 'Unauthorized request',
+      };
+
+    const usersList = await (
+      await clerkClient()
+    ).users.getUserList({
+      emailAddress: emails,
+    });
+
+    const realUsers = usersList.data;
+
+    if (realUsers.find((user) => user.id === userId)) {
+      return {
+        success: false,
+        message: 'You can not invite yourself.',
+      };
+    }
+
+    if (emails.length !== realUsers.length) {
+      return { success: false, message: 'Please provide real users' };
+    }
+
+    const file = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      id,
+    );
+
+    if (!file) {
+      return {
+        success: false,
+        message: 'File does not exist',
+      };
+    }
+
+    const userExists = file.users.find((ele: string) =>
+      emails.includes(ele),
+    );
+
+    if (userExists) {
+      return {
+        success: false,
+        message: `${userExists} already have access.`,
+      };
+    }
+
+    const updatedFile = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      id,
+      { users: emails },
+    );
+
+    return {
+      success: true,
+      message: 'File users updated successfully',
+      updatedFile,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: 'Failed to update file users' };
+  }
+};
+
+interface DeleteFileUsersProps {
+  id: string;
+  bucketFileId: string;
+}
+
+export const deleteFile = async (props: DeleteFileUsersProps) => {
+  const { id, bucketFileId } = props;
+
+  const { databases, storage } = await createAdminClient();
+
+  try {
+    const { userId } = await auth();
+
+    if (!userId)
+      return {
+        success: false,
+        message: 'Unauthorized request',
+      };
+
+    const file = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      id,
+    );
+
+    if (!file) {
+      return {
+        success: false,
+        message: 'File does not exist',
+      };
+    }
+
+    const deletedFile = await databases.deleteDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      id,
+    );
+
+    if (deletedFile) {
+      await storage.deleteFile(appwriteConfig.bucketId, bucketFileId);
+    }
+
+    return {
+      success: true,
+      message: 'File deleted successfully',
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: 'Failed to delete file' };
   }
 };

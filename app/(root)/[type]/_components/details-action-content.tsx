@@ -28,9 +28,7 @@ export const DetailsActionContent = (
 
         <div className="flex gap-1 text-sm">
           <dt className="">By: </dt>
-          <dd className="font-semibold">
-            {`${file.user.first_name} ${file.user.last_name}`}
-          </dd>
+          <dd className="font-semibold">{file.user.fullName}</dd>
         </div>
 
         <div className="flex gap-1 text-sm">

@@ -1,9 +1,13 @@
 'use client';
 
+import { useFileActionDialog } from '@/zustand/use-file-action-dialog';
+import { renameFile } from '@/actions/files.actions';
 import { DialogClose } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { useRouter } from 'next/navigation';
 import { Loader2Icon } from 'lucide-react';
+import { toast } from 'react-toastify';
 import { Models } from 'node-appwrite';
 import { DbFile } from '@/types';
 import React from 'react';
@@ -15,7 +19,11 @@ const displayName = 'RenameActionContent';
 export const RenameActionContent = (
   props: RenameActionContentProps,
 ) => {
-  const { ..._file } = props;
+  const { ...file } = props;
+
+  const router = useRouter();
+
+  const onOpenIdChange = useFileActionDialog((s) => s.onOpenIdChange);
 
   const descId = React.useId();
   const [value, setValue] = React.useState('');
@@ -24,13 +32,48 @@ export const RenameActionContent = (
 
   return (
     <form
-      onSubmit={() => {
+      onSubmit={async (e) => {
+        e.preventDefault();
+
+        if (isLoading) return;
+
         setIsLoading(true);
 
-        if (!value) {
+        if (!value.trim()) {
           setErrorMessage('Input is required');
           setIsLoading(false);
           return;
+        }
+
+        setErrorMessage('');
+
+        try {
+          const results = await renameFile({
+            id: file.$id,
+            name: value,
+          });
+
+          if (!results.success) throw results;
+
+          onOpenIdChange(null);
+          router.refresh();
+        } catch (error) {
+          if (
+            error &&
+            typeof error === 'object' &&
+            'success' in error &&
+            'message' in error &&
+            typeof error.message === 'string'
+          ) {
+            setErrorMessage(error.message);
+            return;
+          }
+
+          toast.error(
+            'Something went wrong on server. Please try again',
+          );
+        } finally {
+          setIsLoading(false);
         }
       }}
     >
@@ -40,6 +83,7 @@ export const RenameActionContent = (
         aria-label="rename"
         placeholder="Enter New name here..."
         type="text"
+        disabled={isLoading}
         value={value}
         onChange={(e) => setValue(e.target.value)}
       />

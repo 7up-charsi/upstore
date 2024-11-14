@@ -1,3 +1,9 @@
+export interface MinimalUser {
+  fullName: string;
+  email: string;
+  id: string;
+}
+
 export interface DbFile {
   name: string;
   type: 'document' | 'image' | 'video' | 'audio' | 'other';
@@ -5,6 +11,7 @@ export interface DbFile {
   userId: string;
   size: number;
   url: string;
-  users: string[];
+  users: MinimalUser[];
+  user: MinimalUser;
   extension: string;
 }

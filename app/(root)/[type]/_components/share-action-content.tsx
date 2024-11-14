@@ -1,10 +1,8 @@
 import { ShareActionForm } from './share-action-form';
 import { Button } from '@/components/ui/button';
-import { formatDateTime } from '@/lib/utils';
 import { Models } from 'node-appwrite';
 import { XIcon } from 'lucide-react';
 import { DbFile } from '@/types';
-import Image from 'next/image';
 import React from 'react';
 
 interface ShareActionContentProps extends Models.Document, DbFile {}
@@ -16,17 +14,17 @@ export const ShareActionContent = (
 ) => {
   const { ...file } = props;
 
-  const handleShare = async (value: string) => {};
-
   const handleRemoveUser = async (email: string) => {};
 
   return (
     <>
-      <ShareActionForm onShare={handleShare} />
+      <ShareActionForm {...file} />
 
-      <div className="text-center text-sm font-semibold text-muted-foreground">
-        Shared with NO users
-      </div>
+      {file.users.length ? null : (
+        <div className="text-center text-sm font-semibold text-muted-foreground">
+          Shared with NO users
+        </div>
+      )}
 
       {!file.users.length ? null : (
         <div className="space-y-2">
@@ -41,24 +39,28 @@ export const ShareActionContent = (
             </div>
 
             <ul className="pt-2">
-              {file.users.map((email: string) => (
+              {file.users.map((user) => (
                 <li
-                  key={email}
+                  key={user.id}
                   className="flex items-center justify-between gap-2"
                 >
-                  <span className="text-sm font-semibold">
-                    {email}
-                  </span>
+                  <>
+                    <span className="text-sm font-semibold">
+                      {user.email}
+                    </span>
 
-                  <Button
-                    onClick={() => handleRemoveUser(email)}
-                    aria-label="remove"
-                    size="icon"
-                    variant="ghost"
-                    className=""
-                  >
-                    <XIcon />
-                  </Button>
+                    <Button
+                      onClick={() => {
+                        handleRemoveUser(user.email);
+                      }}
+                      aria-label="remove"
+                      size="icon"
+                      variant="ghost"
+                      className=""
+                    >
+                      <XIcon />
+                    </Button>
+                  </>
                 </li>
               ))}
             </ul>
