@@ -8,8 +8,8 @@ import {
 } from '@clerk/nextjs/server';
 import { createAdminClient } from '@/appwrite-client';
 import { appwriteConfig } from '@/appwrite.config';
-import { Query } from 'node-appwrite';
-import { MinimalUser } from '@/types';
+import { Models, Query } from 'node-appwrite';
+import { DbFile, MinimalUser } from '@/types';
 
 const createQuries = (userId: string, userEmail: string) => {
   const queries = [
@@ -22,7 +22,15 @@ const createQuries = (userId: string, userEmail: string) => {
   return queries;
 };
 
-export const getFiles = async () => {
+type GetFIlesReturn =
+  | { success: false; message: string }
+  | {
+      success: true;
+      message: string;
+      files: Models.DocumentList<Models.Document & DbFile>;
+    };
+
+export const getFiles = async (): Promise<GetFIlesReturn> => {
   const { databases } = await createAdminClient();
 
   const clerk = await clerkClient();
@@ -43,11 +51,13 @@ export const getFiles = async () => {
       user.primaryEmailAddress?.emailAddress || '',
     );
 
-    const files = await databases.listDocuments(
+    const files = (await databases.listDocuments(
       appwriteConfig.databaseId,
       appwriteConfig.filesCollectionId,
       queries,
-    );
+    )) as unknown as Models.DocumentList<
+      Models.Document & Omit<DbFile, 'users'> & { users: string[] }
+    >;
 
     const withUser = files.documents.map(async (file) => {
       const user = await clerk.users.getUser(file.userId);
