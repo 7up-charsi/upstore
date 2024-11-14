@@ -19,7 +19,7 @@ import {
 import { useFileActionDialog } from '@/zustand/use-file-action-dialog';
 import { constructDownloadUrl } from '@/lib/utils';
 import { ActionDialog } from './action-dialog';
-import { useAuth } from '@clerk/nextjs';
+import { useUser } from '@clerk/nextjs';
 import { Models } from 'node-appwrite';
 import { DbFile } from '@/types';
 import Link from 'next/link';
@@ -63,7 +63,7 @@ export const Actions = (props: ActionsProps) => {
   const onOpenIdChange = useFileActionDialog((s) => s.onOpenIdChange);
   const setAction = useFileActionDialog((s) => s.setAction);
 
-  const { userId } = useAuth();
+  const { user } = useUser();
 
   return (
     <>
@@ -88,7 +88,7 @@ export const Actions = (props: ActionsProps) => {
                 (item.value === 'rename' ||
                   item.value === 'share' ||
                   item.value === 'delete') &&
-                file.userId !== userId
+                file.userId !== user?.id
               }
               className="cursor-pointer data-[not-owner=true]:cursor-default data-[delete=true]:text-destructive data-[not-owner=true]:opacity-50 data-[delete=true]:focus:bg-destructive/10 data-[delete=true]:focus:text-destructive"
               onSelect={(event) => {
@@ -96,7 +96,7 @@ export const Actions = (props: ActionsProps) => {
                   (item.value === 'rename' ||
                     item.value === 'share' ||
                     item.value === 'delete') &&
-                  file.userId !== userId
+                  file.userId !== user?.id
                 ) {
                   event.preventDefault();
                   return;
