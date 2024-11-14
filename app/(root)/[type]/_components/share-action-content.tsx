@@ -1,9 +1,7 @@
 import { ShareActionForm } from './share-action-form';
-import { Button } from '@/components/ui/button';
+import { RemoveUser } from './remove-user';
 import { Models } from 'node-appwrite';
-import { XIcon } from 'lucide-react';
 import { DbFile } from '@/types';
-import React from 'react';
 
 interface ShareActionContentProps extends Models.Document, DbFile {}
 
@@ -13,8 +11,6 @@ export const ShareActionContent = (
   props: ShareActionContentProps,
 ) => {
   const { ...file } = props;
-
-  const handleRemoveUser = async (email: string) => {};
 
   return (
     <>
@@ -34,7 +30,8 @@ export const ShareActionContent = (
                 Shared with
               </span>
               <span className="text-sm font-semibold text-muted-foreground">
-                {file.users.length} users
+                {file.users.length} user
+                {file.users.length > 1 ? 's' : ''}
               </span>
             </div>
 
@@ -49,17 +46,7 @@ export const ShareActionContent = (
                       {user.email}
                     </span>
 
-                    <Button
-                      onClick={() => {
-                        handleRemoveUser(user.email);
-                      }}
-                      aria-label="remove"
-                      size="icon"
-                      variant="ghost"
-                      className=""
-                    >
-                      <XIcon />
-                    </Button>
+                    <RemoveUser id={file.$id} email={user.email} />
                   </>
                 </li>
               ))}

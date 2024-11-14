@@ -126,6 +126,13 @@ export const renameFile = async (props: RenameFileProps) => {
       };
     }
 
+    if (file.userId !== userId) {
+      return {
+        success: false,
+        message: 'Your are not owner of this file.',
+      };
+    }
+
     const updatedFile = await databases.updateDocument(
       appwriteConfig.databaseId,
       appwriteConfig.filesCollectionId,
@@ -197,6 +204,13 @@ export const updateFileUsers = async (
       };
     }
 
+    if (file.userId !== userId) {
+      return {
+        success: false,
+        message: 'Your are not owner of this file.',
+      };
+    }
+
     const userExists = file.users.find((ele: string) =>
       emails.includes(ele),
     );
@@ -223,6 +237,72 @@ export const updateFileUsers = async (
   } catch (error) {
     console.log(error);
     return { success: false, message: 'Failed to update file users' };
+  }
+};
+
+interface RemoveFileSharedUserProps {
+  id: string;
+  email: string;
+}
+
+export const removeFileSharedUser = async (
+  props: RemoveFileSharedUserProps,
+) => {
+  const { email, id } = props;
+
+  const { databases } = await createAdminClient();
+
+  try {
+    const { userId } = await auth();
+
+    if (!userId)
+      return {
+        success: false,
+        message: 'Unauthorized request',
+      };
+
+    const file = await databases.getDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      id,
+    );
+
+    if (!file) {
+      return {
+        success: false,
+        message: 'File does not exist',
+      };
+    }
+
+    if (file.userId !== userId) {
+      return {
+        success: false,
+        message: 'Your are not owner of this file.',
+      };
+    }
+
+    if (!file.users.includes(email)) {
+      return {
+        success: false,
+        message: `${email} user never invited.`,
+      };
+    }
+
+    const updatedFile = await databases.updateDocument(
+      appwriteConfig.databaseId,
+      appwriteConfig.filesCollectionId,
+      id,
+      { users: file.users.filter((user: string) => user !== email) },
+    );
+
+    return {
+      success: true,
+      message: 'Shared user removed successfully',
+      updatedFile,
+    };
+  } catch (error) {
+    console.log(error);
+    return { success: false, message: 'Failed to remove file user' };
   }
 };
 
@@ -255,6 +335,13 @@ export const deleteFile = async (props: DeleteFileUsersProps) => {
       return {
         success: false,
         message: 'File does not exist',
+      };
+    }
+
+    if (file.userId !== userId) {
+      return {
+        success: false,
+        message: 'Your are not owner of this file.',
       };
     }
 

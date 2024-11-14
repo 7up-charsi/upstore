@@ -23,7 +23,7 @@ export const UserButton = () => {
     <article
       aria-label="signin user"
       aria-describedby={descId}
-      className="flex h-12 items-center overflow-hidden"
+      className="flex h-12 items-center"
     >
       <ClerkLoading>
         <Skeleton className="h-full w-full" />
@@ -36,11 +36,13 @@ export const UserButton = () => {
             <AvatarFallback>{user.firstName}</AvatarFallback>
           </Avatar>
 
-          <div className="ml-4 flex grow flex-col items-start overflow-hidden text-sm">
-            <span id={descId} className="truncate font-medium">
+          <div className="ml-4 grow overflow-auto text-sm">
+            <div id={descId} className="truncate font-medium">
               {`${user.firstName} ${user.lastName}`}
-            </span>
-            <span>{user.emailAddresses[0].emailAddress}</span>
+            </div>
+            <div className="truncate">
+              {user.emailAddresses[0].emailAddress}
+            </div>
           </div>
 
           <Button
